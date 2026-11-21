@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import dataclasses
 import sys
 import time
 from collections import deque
@@ -47,6 +48,20 @@ def draw_hands(frame_bgr: np.ndarray, hands: list[Hand]) -> None:
                     cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2)
 
 
+def mirror_hands(hands: list[Hand]) -> list[Hand]:
+    """Return copies of hands with x mirrored (x -> 1 - x), to draw on a flipped frame.
+
+    Handedness is kept: it was computed on the raw camera frame, where MediaPipe
+    labels the user's real hand correctly.
+    """
+    out = []
+    for h in hands:
+        lm = h.landmarks.copy()
+        lm[:, 0] = 1.0 - lm[:, 0]
+        out.append(dataclasses.replace(h, landmarks=lm))
+    return out
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--camera", type=int, default=0, help="camera index (default 0)")
@@ -71,9 +86,10 @@ def main(argv: list[str] | None = None) -> int:
                         "Privacy & security > Camera > Let desktop apps access your camera."
                     )
                     break
-                frame = cv2.flip(frame, 1)
+                # Detect on the raw frame (correct handedness), then show a mirror view.
                 hands = detector.detect(frame, timestamp_ms=int(time.monotonic() * 1000))
-                draw_hands(frame, hands)
+                frame = cv2.flip(frame, 1)
+                draw_hands(frame, mirror_hands(hands))
 
                 times.append(time.monotonic())
                 if len(times) > 1 and times[-1] > times[0]:

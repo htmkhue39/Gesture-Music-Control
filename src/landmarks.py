@@ -16,9 +16,10 @@ MODEL_PATH = Path(__file__).resolve().parent.parent / "models" / "hand_landmarke
 class Hand:
     """One detected hand.
 
-    Handedness assumes a mirrored (selfie) image, as MediaPipe does. For a
-    non-mirrored image (e.g. a photo file), flip it with cv2.flip(img, 1)
-    before detect() to get the same labels as the live demo.
+    Handedness is the person's real hand when detect() gets the raw,
+    unmirrored image (a photo file or a camera frame as captured). Do NOT
+    flip images before detect(): flipping swaps Left/Right. The live demo
+    mirrors only the displayed picture, after detection.
     """
 
     landmarks: np.ndarray  # (21, 3) float32: normalized image x, y and relative z
@@ -64,8 +65,7 @@ class HandDetector:
     def detect(self, frame_bgr: np.ndarray, timestamp_ms: int | None = None) -> list[Hand]:
         """Return the hands found in a BGR image.
 
-        Handedness assumes a mirrored (selfie) image; flip non-mirrored
-        images with cv2.flip(img, 1) to match the live demo.
+        Pass the raw, unmirrored image: flipping it swaps Left/Right.
         """
         if frame_bgr is None or frame_bgr.size == 0:
             raise ValueError("empty image (None or size 0) - check the file path")

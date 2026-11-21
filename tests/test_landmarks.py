@@ -39,3 +39,13 @@ def test_empty_image_raises_value_error(bad):
     with HandDetector() as d:
         with pytest.raises(ValueError, match="empty image"):
             d.detect(bad)
+
+
+def test_handedness_is_anatomical_on_unmirrored_image():
+    # Fixture shows the subject's LEFT hand (arm enters from the image's right
+    # side, subject faces the camera). MediaPipe 1.2.3 labels correctly on the
+    # raw, unmirrored image, and the label swaps if the image is flipped.
+    img = cv2.imread(str(FIXTURE))
+    with HandDetector() as d:
+        assert d.detect(img)[0].handedness == "Left"
+        assert d.detect(cv2.flip(img, 1))[0].handedness == "Right"

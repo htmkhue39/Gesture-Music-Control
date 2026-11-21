@@ -37,3 +37,12 @@ def test_open_camera_backend_arg(monkeypatch):
     wd.open_camera(1); assert seen["a"] == (1, cv2.CAP_DSHOW)
     monkeypatch.setattr(wd.sys, "platform", "darwin")
     wd.open_camera(0); assert seen["a"] == (0,)
+
+
+def test_mirror_hands_flips_x_keeps_label():
+    h = _hand()
+    (m,) = wd.mirror_hands([h])
+    np.testing.assert_allclose(m.landmarks[:, 0], 1 - h.landmarks[:, 0])
+    np.testing.assert_allclose(m.landmarks[:, 1:], h.landmarks[:, 1:])
+    assert m.handedness == "Right" and m.score == h.score
+    np.testing.assert_array_equal(h.landmarks[:, 0], np.linspace(.2, .8, 21).astype(np.float32))  # input untouched

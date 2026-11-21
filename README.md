@@ -1,6 +1,6 @@
 # Gesture-Music-Control
 
-A student project that controls music with hand gestures seen by a webcam. This repo contains the shared setup: a pinned Python environment, a reusable hand-landmark detector (`src/landmarks.py`, built on the MediaPipe Tasks API), a webcam demo and tests.
+A project that controls music with hand gestures seen by a webcam. This repo contains the shared setup: a pinned Python environment, a reusable hand-landmark detector (`src/landmarks.py`, built on the MediaPipe Tasks API), a webcam demo and tests.
 
 ## Requirements
 
@@ -92,7 +92,7 @@ with HandDetector(num_hands=1) as detector:
         print(hand.handedness, hand.score, hand.landmarks.shape)  # (21, 3)
 ```
 
-For video, use `HandDetector(video=True)` and pass `timestamp_ms` to `detect`. `hand.landmarks` are normalized image coordinates, `hand.world` are metres. Handedness assumes a mirrored (selfie) image: for a non-mirrored photo, flip it first with `cv2.flip(img, 1)` to match the live demo.
+For video, use `HandDetector(video=True)` and pass `timestamp_ms` to `detect`. `hand.landmarks` are normalized image coordinates, `hand.world` are metres. Pass images as they are (not mirrored): `hand.handedness` is then the person's real hand. Flipping an image before `detect` swaps Left/Right. The demo mirrors only what it shows on screen.
 
 ## Project layout
 
