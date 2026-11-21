@@ -1,0 +1,51 @@
+from pathlib import Path
+
+import cv2
+import pytest
+import numpy as np
+
+from src.landmarks import HandDetector, Hand
+
+FIXTURE = Path(__file__).parent / "data" / "hand.jpg"
+
+
+def test_no_hand_in_blank_image():
+    with HandDetector() as d:
+        assert d.detect(np.zeros((480, 640, 3), np.uint8)) == []
+
+
+def test_detects_hand_in_fixture():
+    img = cv2.imread(str(FIXTURE))
+    with HandDetector() as d:
+        hands = d.detect(img)
+    assert len(hands) == 1
+    h = hands[0]
+    assert isinstance(h, Hand)
+    assert h.landmarks.shape == (21, 3) and h.world.shape == (21, 3)
+    assert ((h.landmarks[:, :2] >= -0.1) & (h.landmarks[:, :2] <= 1.1)).all()
+    assert h.handedness in ("Left", "Right") and 0 < h.score <= 1
+
+
+def test_video_mode_tolerates_repeated_timestamp():
+    img = cv2.imread(str(FIXTURE))
+    with HandDetector(video=True) as d:
+        d.detect(img, timestamp_ms=100)
+        d.detect(img, timestamp_ms=100)  # must not raise
+        assert len(d.detect(img, timestamp_ms=101)) == 1
+
+
+@pytest.mark.parametrize("bad", [None, np.zeros((0, 0, 3), np.uint8)])
+def test_empty_image_raises_value_error(bad):
+    with HandDetector() as d:
+        with pytest.raises(ValueError, match="empty image"):
+            d.detect(bad)
+
+
+def test_handedness_is_anatomical_on_unmirrored_image():
+    # Fixture shows the subject's LEFT hand (arm enters from the image's right
+    # side, subject faces the camera). MediaPipe 1.2.3 labels correctly on the
+    # raw, unmirrored image, and the label swaps if the image is flipped.
+    img = cv2.imread(str(FIXTURE))
+    with HandDetector() as d:
+        assert d.detect(img)[0].handedness == "Left"
+        assert d.detect(cv2.flip(img, 1))[0].handedness == "Right"

@@ -1,0 +1,8 @@
+mediapipe==1.2.3
+numpy==2.5.5
+opencv-contrib-python==5.1.0.95
+scipy==1.18.1
+scikit-learn==1.9.1
+matplotlib==3.11.2
+pynput==1.8.2
+pytest==9.2.0
