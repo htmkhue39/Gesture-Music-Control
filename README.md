@@ -78,13 +78,13 @@ Post in the group chat: a screenshot of the demo showing **your hand only (no fa
 
 ## Using the landmarks in your own code
 
-Run from the repo root:
+Run from the repo root (the image path is relative to it):
 
 ```python
 import cv2
 from src.landmarks import HandDetector
 
-frame = cv2.imread("hand.jpg")  # BGR image
+frame = cv2.imread("tests/data/hand.jpg")  # BGR image (sample photo in the repo)
 with HandDetector(num_hands=1) as detector:
     for hand in detector.detect(frame):
         print(hand.handedness, hand.score, hand.landmarks.shape)  # (21, 3)
