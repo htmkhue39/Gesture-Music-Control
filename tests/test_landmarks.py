@@ -1,6 +1,7 @@
 from pathlib import Path
 
 import cv2
+import pytest
 import numpy as np
 
 from src.landmarks import HandDetector, Hand
@@ -31,3 +32,10 @@ def test_video_mode_tolerates_repeated_timestamp():
         d.detect(img, timestamp_ms=100)
         d.detect(img, timestamp_ms=100)  # must not raise
         assert len(d.detect(img, timestamp_ms=101)) == 1
+
+
+@pytest.mark.parametrize("bad", [None, np.zeros((0, 0, 3), np.uint8)])
+def test_empty_image_raises_value_error(bad):
+    with HandDetector() as d:
+        with pytest.raises(ValueError, match="empty image"):
+            d.detect(bad)

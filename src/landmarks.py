@@ -14,6 +14,13 @@ MODEL_PATH = Path(__file__).resolve().parent.parent / "models" / "hand_landmarke
 
 @dataclass
 class Hand:
+    """One detected hand.
+
+    Handedness assumes a mirrored (selfie) image, as MediaPipe does. For a
+    non-mirrored image (e.g. a photo file), flip it with cv2.flip(img, 1)
+    before detect() to get the same labels as the live demo.
+    """
+
     landmarks: np.ndarray  # (21, 3) float32: normalized image x, y and relative z
     world: np.ndarray  # (21, 3) float32, metres
     handedness: str  # "Left" or "Right"
@@ -21,7 +28,11 @@ class Hand:
 
 
 class HandDetector:
-    """Context manager wrapping HandLandmarker in image or video mode."""
+    """Context manager wrapping HandLandmarker in image or video mode.
+
+    A video-mode detector keeps tracking state between frames, so use one
+    video-mode detector per clip (or camera stream).
+    """
 
     def __init__(
         self,
@@ -51,6 +62,13 @@ class HandDetector:
         self._landmarker.close()
 
     def detect(self, frame_bgr: np.ndarray, timestamp_ms: int | None = None) -> list[Hand]:
+        """Return the hands found in a BGR image.
+
+        Handedness assumes a mirrored (selfie) image; flip non-mirrored
+        images with cv2.flip(img, 1) to match the live demo.
+        """
+        if frame_bgr is None or frame_bgr.size == 0:
+            raise ValueError("empty image (None or size 0) - check the file path")
         rgb = cv2.cvtColor(frame_bgr, cv2.COLOR_BGR2RGB)
         image = mp.Image(image_format=mp.ImageFormat.SRGB, data=rgb)
         if self._video:

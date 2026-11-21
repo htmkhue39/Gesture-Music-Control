@@ -65,7 +65,11 @@ def main(argv: list[str] | None = None) -> int:
             while True:
                 ok, frame = cap.read()
                 if not ok:
-                    print("Camera stopped sending frames")
+                    print(
+                        "Camera stopped sending frames. Close other apps using the camera "
+                        "(Teams/Zoom), try --camera N, and on Windows enable Settings > "
+                        "Privacy & security > Camera > Let desktop apps access your camera."
+                    )
                     break
                 frame = cv2.flip(frame, 1)
                 hands = detector.detect(frame, timestamp_ms=int(time.monotonic() * 1000))
@@ -80,6 +84,8 @@ def main(argv: list[str] | None = None) -> int:
                             cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 1)
                 cv2.imshow(WINDOW, frame)
                 if cv2.waitKey(1) & 0xFF in (ord("q"), 27):
+                    break
+                if cv2.getWindowProperty(WINDOW, cv2.WND_PROP_VISIBLE) < 1:
                     break
     finally:
         cap.release()
